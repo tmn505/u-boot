@@ -4538,7 +4538,4 @@
 #define ETH_SGMII_PHASE0_COUNT_RESET                                 0x1 // 1
 #define ETH_SGMII_ADDRESS                                            0x18050048
 
-#define GPIO_SWCOM_EN_ADDRESS                                        0x18104050
-#define GPIO_SWCOM_EN_ADDRESS_ANTC_ANTD_MASK                         0xc
-
 #endif /* _QCN550X_H */
