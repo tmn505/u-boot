@@ -229,6 +229,9 @@ pci_init_board (void)
 		PCI_INIT_RETURN;
 	}
 
+/* Temporary PCI Skip for QCN550x due to incorrect REV ID */
+	if (ath_reg_rd(RST_REVISION_ID_ADDRESS) == 0x170)
+		PCI_INIT_RETURN;
 #if defined(CONFIG_MACH_QCA953x)
 	if (ath_reg_rd(RST_BOOTSTRAP_ADDRESS) & RST_BOOTSTRAP_TESTROM_ENABLE_MASK) { 
 		ath_reg_rmw_clear(RST_MISC2_ADDRESS, RST_MISC2_PERSTN_RCPHY_SET(1));
@@ -432,9 +435,9 @@ pci_rc2_init_board (void)
         udelay(10000);
         ath_reg_rmw_set(GPIO_OUT_FUNCTION0_ADDRESS, GPIO_OUT_FUNCTION0_ENABLE_GPIO_0_SET(0x73));
 #elif defined(CONFIG_MACH_QCN550x)
-	ath_reg_rmw_clear(GPIO_OE_ADDRESS, 0x20);
+	ath_reg_rmw_clear(GPIO_OE_ADDRESS, 0x00100000);
         udelay(10000);
-        ath_reg_rmw_set(GPIO_OUT_FUNCTION1_ADDRESS, GPIO_OUT_FUNCTION1_ENABLE_GPIO_5_SET(0x73));
+        ath_reg_rmw_set(GPIO_OUT_FUNCTION5_ADDRESS, GPIO_OUT_FUNCTION5_ENABLE_GPIO_20_SET(0x73));
 #endif
         udelay(10000);
         ath_reg_rmw_set(RST_RESET_ADDRESS,RST_RESET_PCIE_PHY_RESET_SET(1) |

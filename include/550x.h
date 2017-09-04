@@ -2273,7 +2273,9 @@
 
 
 #define RST_REVISION_ID_ADDRESS                                      0x18060090
-#define is_drqfn()  (!(ath_reg_rd(RST_REVISION_ID_ADDRESS) & 0x1000))
+//#define is_drqfn()                                                   (!(ath_reg_rd(RST_REVISION_ID_ADDRESS) & 0x1000))
+/* Temp check for QCN550x due to PKG_ID */
+#define is_drqfn()                                                   (!(ath_reg_rd(RST_REVISION_ID_ADDRESS) & 0x100))
 
 
 #define RST_BOOTSTRAP_DDR_WIDTH_GET(x)                               0  //0: DDR WIDTH 16, Dragonfly only support 16bit
