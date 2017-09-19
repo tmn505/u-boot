@@ -213,6 +213,44 @@ void plat_dev_init(void)
 #	define PCI_INIT_RETURN		return
 #endif
 
+
+static void ath_pci_reg_hose(void)
+{
+#ifndef COMPRESSED_UBOOT
+/*
+ * Now, configure for u-boot tools
+ */
+	hose.first_busno = 0;
+	hose.last_busno = 0xff;
+
+	/* System space */
+	pci_set_region(	&hose.regions[0],
+			0x80000000,
+			0x00000000,
+			32 * 1024 * 1024,
+			PCI_REGION_MEM | PCI_REGION_MEMORY);
+
+	/* PCI memory space */
+	pci_set_region(	&hose.regions[1],
+			0x10000000,
+			0x10000000,
+			128 * 1024 * 1024,
+			PCI_REGION_MEM);
+
+	hose.region_count = 2;
+
+	pci_register_hose(&hose);
+
+	pci_set_ops(	&hose,
+			pci_hose_read_config_byte_via_dword,
+			pci_hose_read_config_word_via_dword,
+			ath_pci_read_config,
+			pci_hose_write_config_byte_via_dword,
+			pci_hose_write_config_word_via_dword,
+			ath_pci_write_config);
+#endif
+}
+
 PCI_INIT_RET_TYPE
 pci_init_board (void)
 {
@@ -324,7 +362,6 @@ pci_init_board (void)
 	udelay(1000);
 
 #if !defined(CONFIG_MACH_QCA956x) && !defined(CONFIG_MACH_QCN550x)
-
 #ifdef PCIE2_APP_ADDRESS
 	if (!(ath_reg_rd(RST_BOOTSTRAP_ADDRESS) & RST_BOOTSTRAP_PCIE_RC_EP_SELECT_MASK)) {
 		pci_rc2_init_board();
@@ -380,39 +417,7 @@ pci_init_board (void)
 	if (((ath_reg_rd(PCIE_RESET_ADDRESS)) & 0x1) == 0x0) {
 		prmsg("*** Warning *** : PCIe WLAN Module not found !!!\n");
 	} else {
-#ifndef COMPRESSED_UBOOT
-		/*
-		 * Now, configure for u-boot tools
-		 */
-
-		hose.first_busno = 0;
-		hose.last_busno = 0xff;
-
-		/* System space */
-		pci_set_region(	&hose.regions[0],
-				0x80000000,
-				0x00000000,
-				32 * 1024 * 1024,
-				PCI_REGION_MEM | PCI_REGION_MEMORY);
-
-		/* PCI memory space */
-		pci_set_region(	&hose.regions[1],
-				0x10000000,
-				0x10000000,
-				128 * 1024 * 1024,
-				PCI_REGION_MEM);
-
-		hose.region_count = 2;
-
-		pci_register_hose(&hose);
-
-		pci_set_ops(	&hose,
-				pci_hose_read_config_byte_via_dword,
-				pci_hose_read_config_word_via_dword,
-				ath_pci_read_config,
-				pci_hose_write_config_byte_via_dword,
-				pci_hose_write_config_word_via_dword,
-				ath_pci_write_config);
+		ath_pci_reg_hose();
 #endif
 	}
 #endif
@@ -546,6 +551,8 @@ pci_rc2_init_board (void)
 	if (((ath_reg_rd(PCIE2_RESET_ADDRESS)) & 0x1) == 0x0) {
 		prmsg("*** Warning *** : PCIe WLAN Module not found !!!\n");
 		return;
+	} else {
+		ath_pci_reg_hose();
 	}
 }
 #endif
