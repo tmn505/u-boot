@@ -418,7 +418,6 @@ pci_init_board (void)
 		prmsg("*** Warning *** : PCIe WLAN Module not found !!!\n");
 	} else {
 		ath_pci_reg_hose();
-#endif
 	}
 #endif
 #ifdef PCIE2_APP_ADDRESS
