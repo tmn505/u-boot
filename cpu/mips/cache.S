@@ -385,7 +385,7 @@ mips_icache_flush_ix:	/* Flush caches Index Invalidate */
 	li	t2,	KUSEG
 	addu	t3,	t0,	t2
 	mtc0	zero,	CP0_TAGLO
-#if defined(CONFIG_WASP_SUPPORT) || defined(CONFIG_MACH_QCA56x) || defined(CONFIG_MACH_QCN550x)
+#if defined(CONFIG_WASP_SUPPORT) || defined(CONFIG_MACH_QCA956x) || defined(CONFIG_MACH_QCN550x)
 	mtc0	zero, $29	# C0_TagHi
 	mtc0	zero, $28, 2	# C0_DTagLo
 	mtc0	zero, $29, 2	# C0_DTagHi
