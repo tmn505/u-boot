@@ -32,7 +32,7 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_SYS_MALLOC_LEN	(4 << 20) /* 4MiB for malloc() */
+#define CONFIG_SYS_MALLOC_LEN	(9 << 20) /* 16MiB for malloc() */
 
 /*
  * Other required minimal configurations
