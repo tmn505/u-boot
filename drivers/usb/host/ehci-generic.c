@@ -13,8 +13,10 @@
 #include <reset.h>
 #include <asm/io.h>
 #include <dm.h>
-#include "ehci.h"
 #include <power/regulator.h>
+
+#include "ehci.h"
+#include "phy.h"
 
 /*
  * Even though here we don't explicitly use "struct ehci_ctrl"
@@ -25,7 +27,6 @@ struct generic_ehci {
 	struct ehci_ctrl ctrl;
 	struct clk *clocks;
 	struct reset_ctl *resets;
-	struct phy phy;
 #ifdef CONFIG_DM_REGULATOR
 	struct udevice *vbus_supply;
 #endif
@@ -149,7 +150,7 @@ static int ehci_usb_probe(struct udevice *dev)
 	if (err)
 		goto reset_err;
 
-	err = ehci_setup_phy(dev, &priv->phy, 0);
+	err = usb_phys_setup(dev);
 	if (err)
 		goto regulator_err;
 
@@ -164,7 +165,7 @@ static int ehci_usb_probe(struct udevice *dev)
 	return 0;
 
 phy_err:
-	ret = ehci_shutdown_phy(dev, &priv->phy);
+	ret = usb_phys_shutdown(dev);
 	if (ret)
 		dev_err(dev, "failed to shutdown usb phy\n");
 
@@ -194,7 +195,7 @@ static int ehci_usb_remove(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	ret = ehci_shutdown_phy(dev, &priv->phy);
+	ret = usb_phys_shutdown(dev);
 	if (ret)
 		return ret;
 
