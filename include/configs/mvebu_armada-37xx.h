@@ -85,15 +85,12 @@
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 0) \
 	func(USB, usb, 0) \
-	func(SCSI, scsi, 0) \
-	func(PXE, pxe, na) \
-	func(DHCP, dhcp, na)
+	func(SCSI, scsi, 0)
 
 #include <config_distro_bootcmd.h>
 
 #define CONFIG_EXTRA_ENV_SETTINGS	\
 	"scriptaddr=0x6d00000\0"	\
-	"pxefile_addr_r=0x6e00000\0"	\
 	"fdt_addr_r=0x6f00000\0"	\
 	"kernel_addr_r=0x7000000\0"	\
 	"ramdisk_addr_r=0x8000000\0"	\
