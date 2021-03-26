@@ -21,6 +21,19 @@
 # MA 02111-1307 USA
 #
 
+1)
+export PATH=$PATH:tool_chain_path
+export CROSS_COMPILE=mips-linux-gnu-
+2)
+sd/emmc boot:
+make canna_v10_uImage_msc0
+nor flash boot:
+make canna_v10_uImage_sfc_nor
+
+
+burning uboot to sd card:
+dd if=xxx/u-boot-with-spl-mbr.bin of=/dev/sdx bs=1K count=512;
+
 Summary:
 ========
 
