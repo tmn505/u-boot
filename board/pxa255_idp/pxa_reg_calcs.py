@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 # (C) Copyright 2004
 # BEC Systems <http://bec-systems.com>
