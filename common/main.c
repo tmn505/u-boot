@@ -40,6 +40,10 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+//extern unsigned char enter_backup_sys;
+extern unsigned char enter_sys_flag;
+
+
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
@@ -205,6 +209,11 @@ static int abortboot_normal(int bootdelay)
 {
 	int abort = 0;
 	unsigned long ts;
+	unsigned char BootType;
+
+	printf("\nPlease choose the operation: \n");
+	printf("      1: Entr boot command line interface.\n");
+	printf(" others: Boot system code via Flash (default).\n");
 
 #ifdef CONFIG_MENUPROMPT
 	printf(CONFIG_MENUPROMPT);
@@ -220,9 +229,12 @@ static int abortboot_normal(int bootdelay)
 	 */
 	if (bootdelay >= 0) {
 		if (tstc()) {	/* we got a key press	*/
-			(void) getc();  /* consume input	*/
-			puts ("\b\b\b 0");
-			abort = 1;	/* don't auto boot	*/
+			BootType =  getc();  /* consume input	*/
+			printf("\n\rYou choosed %c\n\n", BootType);
+			if(BootType == '1'){
+				puts ("\b\b\b 0");
+				abort = 1;	/* don't auto boot	*/
+			}
 		}
 	}
 #endif
@@ -233,12 +245,15 @@ static int abortboot_normal(int bootdelay)
 		ts = get_timer(0);
 		do {
 			if (tstc()) {	/* we got a key press	*/
-				abort  = 1;	/* don't auto boot	*/
 				bootdelay = 0;	/* no more delay	*/
 # ifdef CONFIG_MENUKEY
 				menukey = getc();
 # else
-				(void) getc();  /* consume input	*/
+				BootType = getc();  /* consume input	*/
+				printf("\n\rYou choosed %c\n\n", BootType);
+				if(BootType == '1'){
+					abort = 1;	/* don't auto boot	*/
+				}
 # endif
 				break;
 			}
@@ -386,7 +401,17 @@ static void process_boot_delay(void)
 	}
 	else
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
-		s = getenv ("bootcmd");
+	
+#ifdef BACKUP_SYSTEM
+//	if(enter_backup_sys == 1)
+	if(enter_sys_flag == 1)
+	{
+		setenv("bootcmd", CONFIG_BOOTCOMMAND_BACKUP);
+		setenv("bootargs", CONFIG_BOOTARGS_BACKUP);
+	}
+#endif
+	s = getenv ("bootcmd");
+	/* printf("bootcmd=%s\n", s); */
 #ifdef CONFIG_OF_CONTROL
 	/* Allow the fdt to override the boot command */
 	env = fdtdec_get_config_string(gd->fdt_blob, "bootcmd");
@@ -406,7 +431,7 @@ static void process_boot_delay(void)
 #endif /* CONFIG_OF_CONTROL */
 
 	debug ("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
-
+	printf("bootdelay = %d\n", bootdelay);
 	if (bootdelay != -1 && s && !abortboot(bootdelay)) {
 #ifdef CONFIG_AUTOBOOT_KEYED
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
@@ -418,7 +443,6 @@ static void process_boot_delay(void)
 		disable_ctrlc(prev);	/* restore Control C checking */
 #endif
 	}
-
 #ifdef CONFIG_MENUKEY
 	if (menukey == CONFIG_MENUKEY) {
 		s = getenv("menucmd");
@@ -508,7 +532,6 @@ void main_loop(void)
 		}
 #endif
 		len = readline (CONFIG_SYS_PROMPT);
-
 		flag = 0;	/* assume no special flags for now */
 		if (len > 0)
 			strcpy (lastcommand, console_buffer);
@@ -1068,6 +1091,14 @@ int readline_into_buffer(const char *const prompt, char *buffer, int timeout)
 		while (!tstc()) {
 			show_activity(0);
 			WATCHDOG_RESET();
+		}
+#endif
+
+
+#if defined(CONFIG_USB_GADGET) && defined(CONFIG_USB_SELF_POLLING)
+		while (!tstc()) {
+			int usb_gadget_handle_interrupts(void);
+			usb_gadget_handle_interrupts();
 		}
 #endif
 		c = getc();
