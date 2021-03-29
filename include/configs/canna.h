@@ -117,10 +117,10 @@
 			/* #define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=192.168.4.254:192.168.4.1:192.168.4.1:255.255.255.0 rootdelay=2 nfsroot=192.168.4.13:/home/fpga/kyhe/rootfs rw" */
 			/*#define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off init=/linuxrc rootfstype=jffs2 root=/dev/mtdblock2 rw"*/
 			/*#define  CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=cramfs root=/dev/mtdblock2 ro init=/linuxrc"*/
-			#define  CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock2 rw init=/sbin/init"
- 			#define CONFIG_BOOTARGS_BACKUP BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock2 rw init=/sbin/init"
+			#define  CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock4 rw init=/sbin/init"
+ 			#define CONFIG_BOOTARGS_BACKUP BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock5 rw init=/sbin/init"
 			#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x200000 0x80800000 ;bootm 0x80800000"
- 			#define CONFIG_BOOTCOMMAND_BACKUP "sfcnor read 0x40000 0x200000 0x80800000 ;bootm 0x80800000"
+ 			#define CONFIG_BOOTCOMMAND_BACKUP "sfcnor read 0xA40000 0x200000 0x80800000 ;bootm 0x80800000"
 			/*#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x800000 0x80800000 ;bootm 0x80800000"*/
 		#else  /* CONFIG_SPL_SFC_NAND */
 			/*#define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off root=/dev/ram0 rw rdinit=/linuxrc"

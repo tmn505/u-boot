@@ -43,7 +43,6 @@ DECLARE_GLOBAL_DATA_PTR;
 //extern unsigned char enter_backup_sys;
 extern unsigned char enter_sys_flag;
 
-
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
@@ -84,6 +83,88 @@ static int      retry_time = -1; /* -1 so can call readline before main_loop */
 int do_mdm_init = 0;
 extern void mdm_init(void); /* defined in board.c */
 #endif
+
+#define KERNEL_CHECK_SIZE 		0x40000
+#define KERNEL_CHECK_ADDR		0x40000
+#define KERNEL_CHECK_VAL_SIZE	32
+#define KERNEL_CHECK_VAL_ADDR	2359264  //192k+64k+2M-32
+#define ERASE_FLAG_ADDR			16711680 //16M-64k
+
+
+int check_system_start_normal(void)
+{
+	printf("start check_system_start_normal\n");
+	char airdisk_flag_buf[17];
+	char flag[16];// = "airdisk1";
+	cmd_tbl_t *cmdtp;
+	memset(flag, 0, sizeof(flag));
+	strcpy(flag, "airdisk1");
+	memset(airdisk_flag_buf, 0, sizeof(airdisk_flag_buf));
+	sfc_nor_read(ERASE_FLAG_ADDR, 16, airdisk_flag_buf);
+	printf("airdisk flag :%s\r\n",airdisk_flag_buf);
+	if(strncmp(airdisk_flag_buf,"airdisk",strlen("airdisk")) == 0)
+	{
+		if(airdisk_flag_buf[7] == '0' || airdisk_flag_buf[7] == '1' || airdisk_flag_buf[7] == '2'){
+			airdisk_flag_buf[7]++;
+			sfc_nor_write(ERASE_FLAG_ADDR, 16, airdisk_flag_buf, 1);
+		}
+		else
+		{
+			//char *argv[2];
+			//char addr_str[11];
+			//memset(flag,0xFF,sizeof(flag));
+			//sfc_nor_write(ERASE_FLAG_ADDR, 16, flag, 1);
+			airdisk_flag_buf[7] = '0';
+			sfc_nor_write(ERASE_FLAG_ADDR, 16, airdisk_flag_buf, 1);
+			enter_sys_flag = 1;
+		}
+	}
+	else
+	{
+		sfc_nor_write(ERASE_FLAG_ADDR, 16, flag, 1);
+	}
+	return 0;
+}
+
+int check_image_validation(void)
+{
+	int ret = 0;
+	int broken1 = 0, broken2 = 0;
+	unsigned long len = 0, chksum = 0;
+	image_header_t hdr1, hdr2;
+	unsigned char *hdr1_addr, *hdr2_addr;
+	char *stable, *try;
+	char kernel_partiong_buf[KERNEL_CHECK_SIZE + 1];
+	char kernel_md5_buf[33];
+	char kernel_md5_cal_buf[33];
+	
+	memset(kernel_md5_buf, 0, sizeof(kernel_md5_buf));
+	memset(kernel_md5_cal_buf, 0, sizeof(kernel_md5_cal_buf));
+	memset(kernel_partiong_buf, 0, sizeof(kernel_partiong_buf));
+
+	ret = sfc_nor_read(KERNEL_CHECK_ADDR, KERNEL_CHECK_SIZE, kernel_partiong_buf);
+	if(ret != 0){
+		printf("sfc_nor_read error\r\n");
+	}
+
+	ret = sfc_nor_read(KERNEL_CHECK_VAL_ADDR, KERNEL_CHECK_VAL_SIZE, kernel_md5_buf);
+	if(ret != 0){
+		printf("sfc_nor_read error\r\n");
+	}
+	
+	get_md5(kernel_partiong_buf, KERNEL_CHECK_SIZE, kernel_md5_cal_buf);
+
+	printf("kernel_md5_buf = %s\r\n",kernel_md5_buf);
+	printf("kernel_md5_cal_buf = %s\r\n",kernel_md5_cal_buf);
+	if(memcmp(kernel_md5_cal_buf, kernel_md5_buf, KERNEL_CHECK_VAL_SIZE) != 0)
+	{	
+		printf("md5 check failed \r\n");
+		enter_sys_flag = 1;
+		ret = -1;
+	}
+
+	return ret;
+}
 
 /***************************************************************************
  * Watch for 'delay' seconds for autoboot stop or autoboot delay string.
@@ -403,12 +484,21 @@ static void process_boot_delay(void)
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
 	
 #ifdef BACKUP_SYSTEM
-//	if(enter_backup_sys == 1)
-	if(enter_sys_flag == 1)
-	{
+
+	check_system_start_normal();
+	check_image_validation();
+
+	if(enter_sys_flag == 1){
+		printf("Coming into backup system\r\n");
+		led_init_backup_system(2);
 		setenv("bootcmd", CONFIG_BOOTCOMMAND_BACKUP);
 		setenv("bootargs", CONFIG_BOOTARGS_BACKUP);
 	}
+	else{
+		printf("Coming into normal system\r\n");
+		led_init(2);
+	}
+	
 #endif
 	s = getenv ("bootcmd");
 	/* printf("bootcmd=%s\n", s); */

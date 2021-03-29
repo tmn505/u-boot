@@ -29,6 +29,7 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/mmc.h>
 #include <mmc.h>
+#include <u-boot/md5_dm.h>
 
 //unsigned char enter_backup_sys = 0;
 unsigned char enter_sys_flag = 0;
@@ -577,19 +578,8 @@ int fix_mbr(struct mmc *mmc)
 
 int led_init(unsigned char wifimode)
 {
-	int sys_led;
-	int off_led;
-
-	if(wifimode == 5)
-	{
-		sys_led = LED_GREEN;
-		off_led = LED_BLUE;
-	}
-	else
-	{
-		sys_led = LED_BLUE;
-		off_led = LED_GREEN;
-	}
+	int sys_led = LED_BLUE;
+	int off_led = LED_GREEN;
 
 	gpio_request(off_led , "off-led");
 	gpio_direction_output(off_led , 0);
@@ -609,6 +599,69 @@ int led_init(unsigned char wifimode)
 /*	udelay(200000);
 	gpio_set_value(sys_led, 1);
 */
+}
+
+int led_init_backup_system(unsigned char wifimode)
+{
+	int sys_led = LED_BLUE;
+	int off_led = LED_GREEN;
+
+	gpio_request(off_led , "off-led");
+	gpio_direction_output(off_led , 0);
+	gpio_set_value(off_led, 1);
+	
+	gpio_request(sys_led , "led-sys");
+	gpio_direction_output(sys_led , 0);
+	gpio_set_value(sys_led, 0);
+	udelay(1000000);
+	gpio_set_value(sys_led, 1);
+	udelay(200000);
+	gpio_set_value(sys_led, 0);
+	udelay(1000000);
+	gpio_set_value(sys_led, 1);
+	udelay(200000);
+	gpio_set_value(sys_led, 0);
+/*	udelay(200000);
+	gpio_set_value(sys_led, 1);
+*/
+}
+
+static int hex16totxt(char *in_data,char *out_data)
+{
+	int tmpi,tmpcn=0;
+	char hex_buf[3];
+	char hex_hi,hex_lo,hex;
+	for(tmpi=0;tmpi<16;tmpi++)
+	{
+		hex=in_data[tmpi];
+		memset(hex_buf, 0, sizeof(hex_buf));
+		sprintf(hex_buf, "%02x", (unsigned char)hex);
+		strcat(out_data, hex_buf);
+		#if 0
+		hex=in_data[tmpi];
+		hex_hi=(hex>>4)&0xF;
+		hex_lo=hex&0xF;
+		if(hex_lo<10)
+			out_data[tmpcn++]=hex_lo+'0';
+		else
+			out_data[tmpcn++]=hex_lo+'a';
+		if(hex_hi<10)
+			out_data[tmpcn++]=hex_hi+'0';
+		else
+			out_data[tmpcn++]=hex_hi+'a';
+		#endif
+	}
+}
+
+int get_md5(char *data, int size, char *md5_out_buf)
+{
+	char md5_buf[17];
+	memset(md5_buf,0,17);
+	//printf("size = \"%d\" \n", size);
+	
+	md5_dm(data, size, md5_buf);
+	hex16totxt(md5_buf,md5_out_buf);
+	return 0;
 }
 
 #ifdef CONFIG_USB_GADGET
@@ -754,7 +807,6 @@ int checkboard(void)
 
 	puts("Board: Canna (Ingenic XBurst X1000 SoC)\n");
 	printf("DDR Freq: %d\n",CONFIG_SYS_MEM_FREQ);
-	printf("version: new\n");
 	return 0;
 }
 
