@@ -58,7 +58,6 @@
 
 #define CONFIG_UART2_PC
 
-/*#define CONFIG_DDR_TEST*/
 #define CONFIG_DDR_PARAMS_CREATOR
 #define CONFIG_DDR_HOST_CC
 #define CONFIG_DDR_TYPE_LPDDR
@@ -66,23 +65,10 @@
 #define CONFIG_DDR_CS1			0	/* 1-connected, 0-disconnected */
 #define CONFIG_DDR_DW32			0	/* 1-32bit-width, 0-16bit-width */
 #define CONFIG_MDDR_ECM220ACBCN_50
-/*#define CONFIG_MDDR_H5MS5122DFR_J3M*/
-/*#define CONFIG_DDR3_TSD34096M1333C9_E*/
 
 #define CONFIG_AUDIO_CAL_DIV
 #define CONFIG_AUDIO_APLL CONFIG_SYS_APLL_FREQ
 #define CONFIG_AUDIO_MPLL CONFIG_SYS_MPLL_FREQ
-
-
-/* #define CONFIG_DDR_DLL_OFF */
-/*
- * #define CONFIG_DDR_CHIP_ODT
- * #define CONFIG_DDR_PHY_ODT
- * #define CONFIG_DDR_PHY_DQ_ODT
- * #define CONFIG_DDR_PHY_DQS_ODT
- * #define CONFIG_DDR_PHY_IMPED_PULLUP		0xe
- * #define CONFIG_DDR_PHY_IMPED_PULLDOWN	0xe
- */
 
 #if defined(CONFIG_SPL_SFC_NOR) || defined(CONFIG_SPL_SFC_NAND)
 #define CONFIG_SPL_SFC_SUPPORT
@@ -113,32 +99,17 @@
 #if defined(CONFIG_SPL_NOR_SUPPORT) || defined(CONFIG_SPL_SFC_SUPPORT)
 	#if defined(CONFIG_SPL_SFC_SUPPORT)
 		#if defined(CONFIG_SPL_SFC_NOR)
-			/*#define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off root=/dev/ram0 rw rdinit=/linuxrc"*/
-			/* #define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=192.168.4.254:192.168.4.1:192.168.4.1:255.255.255.0 rootdelay=2 nfsroot=192.168.4.13:/home/fpga/kyhe/rootfs rw" */
-			/*#define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off init=/linuxrc rootfstype=jffs2 root=/dev/mtdblock2 rw"*/
-			/*#define  CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=cramfs root=/dev/mtdblock2 ro init=/linuxrc"*/
 			#define  CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock4 rw init=/sbin/init"
  			#define CONFIG_BOOTARGS_BACKUP BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock5 rw init=/sbin/init"
 			#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x200000 0x80800000 ;bootm 0x80800000"
  			#define CONFIG_BOOTCOMMAND_BACKUP "sfcnor read 0xA40000 0x200000 0x80800000 ;bootm 0x80800000"
-			/*#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x800000 0x80800000 ;bootm 0x80800000"*/
 		#else  /* CONFIG_SPL_SFC_NAND */
-			/*#define	 CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off root=/dev/ram0 rw rdinit=/linuxrc"
-			#define CONFIG_BOOTCOMMAND "sfcnand read 0x80600000 0x800000 0x500000 ;bootm 0x80600000"*/
 			#define  CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off init=/linuxrc ubi.mtd=2 root=ubi0:rootfs rootfstype=ubifs rw"
                         #define CONFIG_BOOTCOMMAND "sfcnand read 0x100000 0x400000 0x80600000 ;bootm 0x80600000"
-
 		#endif
 	#else
-/*#define	 CONFIG_BOOTARGS BOOTARGS_COMMON " ip=192.168.10.205:192.168.10.1:192.168.10.1:255.255.255.0 nfsroot=192.168.4.3:/home/rootdir rw"*/
-/*#define CONFIG_BOOTCOMMAND "tftpboot xxx/uImage; bootm"*/
-
 	#define CONFIG_BOOTARGS BOOTARGS_COMMON " ip=192.168.10.205:192.168.10.1:192.168.10.1:255.255.255.0  nfsroot=192.168.4.13:/home/nfsroot/fpga/rootfs rw"
 	#define CONFIG_BOOTCOMMAND "tftpboot 0x80600000 fpga/user/your_dir/your_uImage;bootm"
-
-	/*#define CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off root=/dev/ram0 rw rdinit=/linuxrc"
-	  #define CONFIG_BOOTCOMMAND "mmc read 0x80f00000 0x1800 0x1000; bootm 0x80f00000"*/
-
 	#endif
 #elif defined(CONFIG_SPL_JZMMC_SUPPORT)
 	#ifdef CONFIG_JZ_MMC_MSC0
@@ -213,7 +184,6 @@
 #define CONFIG_CMD_GETTIME
 #define CONFIG_CMD_UNZIP        /* unzip from memory to memory  */
 #define CONFIG_CMD_DHCP
-/* #define CONFIG_CMD_NET */      /* networking support*/
 #define CONFIG_CMD_PING
 
 #ifndef CONFIG_SPL_BUILD
@@ -246,8 +216,6 @@
 
 /* MMC */
 #define CONFIG_CMD_MMC
-/*#define CONFIG_MMC_TRACE*/
-
 
 #ifdef CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC		1
@@ -257,18 +225,12 @@
 #ifdef CONFIG_JZ_MMC_MSC0
 #define CONFIG_JZ_MMC_SPLMSC 0
 #define CONFIG_JZ_MMC_MSC0_PA_4BIT 1
-/* #define CONFIG_JZ_MMC_MSC0_PA_8BIT 1 */
-/* #define CONFIG_MSC_DATA_WIDTH_8BIT */
 #define CONFIG_MSC_DATA_WIDTH_4BIT
-/* #define CONFIG_MSC_DATA_WIDTH_1BIT */
 #endif
 
 #ifdef CONFIG_JZ_MMC_MSC1
-/*#define CONFIG_JZ_MMC_SPLMSC 1*/
 #define CONFIG_JZ_MMC_MSC1_PC 1
-/* #define CONFIG_MSC_DATA_WIDTH_8BIT */
 #define CONFIG_MSC_DATA_WIDTH_4BIT
-/* #define CONFIG_MSC_DATA_WIDTH_1BIT */
 #endif
 #endif
 
@@ -436,7 +398,6 @@
 #else
 #define CONFIG_JZ_SPI
 #endif
-/*#define CONFIG_JZ_SPI_FLASH*/
 #define CONFIG_CMD_SF
 #define CONFIG_SPI_FLASH_INGENIC
 #define CONFIG_SPI_FLASH
@@ -446,7 +407,6 @@
 #ifdef CONFIG_CMD_SFC_NOR
 #define CONFIG_JZ_SFC
 #define CONFIG_JZ_SFC_NOR
-/*#define CONFIG_SPI_DUAL*/
 #define CONFIG_SPI_QUAD
 #endif
 
@@ -464,13 +424,7 @@
  * MBR configuration
  */
 
-#define SD_SIZE_4G 
-/* #define SD_SIZE_8G */
-/* #define SD_SIZE_16G */
-/* #define SD_SIZE_32G */
-/* #define SD_SIZE_64G */
-/* #define SD_SIZE_128G */
-
+#define SD_SIZE_4G
 
 #ifdef CONFIG_MBR_CREATOR
 #if 0
@@ -492,7 +446,6 @@
 #endif
 
 
-/* #define CONFIG_MBR_P0_OFF	64mb */
 #ifndef BACKUP_SYSTEM
 #define CONFIG_MBR_P0_OFF	8mb
 #define CONFIG_MBR_P0_END	60mb    /* 48 */
@@ -506,7 +459,6 @@
 #define CONFIG_MBR_P2_END	64mb
 #define CONFIG_MBR_P2_TYPE 	linux
 
-/* #define CONFIG_MBR_P3_OFF	280mb */
 #define CONFIG_MBR_P3_OFF	70mb
 #define CONFIG_MBR_P3_OFF_INT 70
 
@@ -524,7 +476,6 @@
 #define CONFIG_MBR_P2_END	128mb
 #define CONFIG_MBR_P2_TYPE 	linux
 
-/* #define CONFIG_MBR_P3_OFF	280mb */
 #define CONFIG_MBR_P3_OFF	129mb
 #define CONFIG_MBR_P3_OFF_INT 129
 #endif

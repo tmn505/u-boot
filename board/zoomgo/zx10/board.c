@@ -31,9 +31,7 @@
 #include <mmc.h>
 #include <u-boot/md5_dm.h>
 
-//unsigned char enter_backup_sys = 0;
 unsigned char enter_sys_flag = 0;
-//dm sys flag
 typedef enum
 {
 	FIRST_SYS_FLAG = 0,
@@ -41,9 +39,6 @@ typedef enum
 }dm_sys_flag;
 
 
-/*#define LED_SYS_MEM    GPIO_PB(1)  */ /* for dm6291 evb */
-
-// #define LED_SYS    GPIO_PC(22)  /* for wendy */
 #define LED_BLUE    GPIO_PC(26)  /* for 5025F, blue */
 #define LED_GREEN    GPIO_PC(25)  /* for 5025F, blue */
 
@@ -113,10 +108,6 @@ int write_ulong_to_memory(int offset,unsigned long p4_sector)
 	addr = 0x81000000;
 	unsigned char *buf = map_sysmem(addr, bytes);
 	buf = buf + offset;
-	
-	// *((unsigned int *)buf) = (unsigned int)p4_sector;
-	// *buf = 0xaa;
-	// *((unsigned int *)buf) = 0x00711000;
 
 	*buf++ = p4_sector & 0xff;
 	*buf++ = (p4_sector >> 8) & 0xff;
@@ -134,10 +125,6 @@ int write_uchar_to_memory(int offset,unsigned char dat)
 	addr = 0x81000000;
 	unsigned char *buf = map_sysmem(addr, bytes);
 	buf = buf + offset;
-	
-	// *((unsigned int *)buf) = (unsigned int)p4_sector;
-	// *buf = 0xaa;
-	// *((unsigned int *)buf) = 0x00711000;
 
 	*buf = dat;
 
@@ -185,20 +172,10 @@ int get_data_from_mmc(struct mmc *mmc,u32 blk,u32 cnt)
 	if (state != MMC_INVALID) {
 		
 		int idx = 2;
-		// u32 blk, cnt, n;
 		u32 n;
 		void *addr;
 
-		// if (state != MMC_ERASE) {
-		// 	addr = (void *)simple_strtoul(0x80600000, NULL, 16);
-		// 	++idx;
-		// } else
-		// 	addr = NULL;
 		addr = 0x81000000;
-		// blk = simple_strtoul(0x200, NULL, 16);
-		// blk = 512;
-		// cnt = simple_strtoul(1, NULL, 16);
-		// cnt = 1;
 
 		if (!mmc) {
 			printf("no mmc device at slot %x\n", curr_device);
@@ -207,8 +184,6 @@ int get_data_from_mmc(struct mmc *mmc,u32 blk,u32 cnt)
 
 		printf("\nMMC read: dev # %d, block # %d, count %d ... ",
 				 curr_device, blk, cnt);
-
-		// mmc_init(mmc);
 
 		if ((state == MMC_WRITE || state == MMC_ERASE)) {
 			if (mmc_getwp(mmc) == 1) {
@@ -251,20 +226,10 @@ int write_data_to_mmc(struct mmc *mmc,u32 blk,u32 cnt)
 	if (state != MMC_INVALID) {
 		
 		int idx = 2;
-		// u32 blk, cnt, n;
 		u32 n;
 		void *addr;
 
-		// if (state != MMC_ERASE) {
-		// 	addr = (void *)simple_strtoul(0x80600000, NULL, 16);
-		// 	++idx;
-		// } else
-		// 	addr = NULL;
 		addr = 0x81000000;
-		// blk = simple_strtoul(0x200, NULL, 16);
-		// blk = 512;
-		// cnt = simple_strtoul(1, NULL, 16);
-		// cnt = 1;
 
 		if (!mmc) {
 			printf("no mmc device at slot %x\n", curr_device);
@@ -273,8 +238,6 @@ int write_data_to_mmc(struct mmc *mmc,u32 blk,u32 cnt)
 
 		printf("\nMMC write: dev # %d, block # %d, count %d ... ",
 				 curr_device, blk, cnt);
-
-		// mmc_init(mmc);
 
 		if ((state == MMC_WRITE || state == MMC_ERASE)) {
 			if (mmc_getwp(mmc) == 1) {
@@ -361,11 +324,6 @@ int mp_disk(struct mmc *mmc)
 {
 	unsigned long p4_sector;
 	unsigned long p4_offset;
-	// unsigned long i;
-	// char tmp_str[16]="\0";
-	// strncpy(tmp_str,CONFIG_MBR_P3_OFF,strlen(CONFIG_MBR_P3_OFF)-2);
-	// i = atoi(tmp_str);
-	// printf("p4_offset = %d\n", i);
 	p4_offset = CONFIG_MBR_P3_OFF_INT*1024*2;
 	get_disk_size(mmc,&p4_sector);
 	p4_sector = p4_sector - p4_offset ;
@@ -511,7 +469,6 @@ int fix_mbr(struct mmc *mmc)
 	}
 
 	//读取第四个分区信息
-	//printf("get mbr2 tab_item_mbr1[3].offset = %08x\n", tab_item_mbr1[3].offset);
 	ret = get_data_from_mmc(mmc,tab_item_mbr1[3].offset,1);
 	if(ret != 0){
 		printf("get data form mmc error\n");
@@ -596,9 +553,6 @@ int led_init(unsigned char wifimode)
 	gpio_set_value(sys_led, 1);
 	udelay(200000);
 	gpio_set_value(sys_led, 0);
-/*	udelay(200000);
-	gpio_set_value(sys_led, 1);
-*/
 }
 
 int led_init_backup_system(unsigned char wifimode)
@@ -621,9 +575,6 @@ int led_init_backup_system(unsigned char wifimode)
 	gpio_set_value(sys_led, 1);
 	udelay(200000);
 	gpio_set_value(sys_led, 0);
-/*	udelay(200000);
-	gpio_set_value(sys_led, 1);
-*/
 }
 
 static int hex16totxt(char *in_data,char *out_data)
@@ -657,8 +608,7 @@ int get_md5(char *data, int size, char *md5_out_buf)
 {
 	char md5_buf[17];
 	memset(md5_buf,0,17);
-	//printf("size = \"%d\" \n", size);
-	
+
 	md5_dm(data, size, md5_buf);
 	hex16totxt(md5_buf,md5_out_buf);
 	return 0;
