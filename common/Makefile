@@ -42,7 +42,7 @@ COBJS-$(CONFIG_SYS_GENERIC_BOARD) += board_r.o
 
 # core command
 COBJS-y += cmd_boot.o
-COBJS-y += cmd_boota.o
+COBJS-$(CONFIG_BOOT_ANDROID) += cmd_boota.o
 COBJS-$(CONFIG_BOOT_ZIMAGE) += cmd_bootx.o
 COBJS-$(CONFIG_BOOT_XIMAGE) += cmd_bootx.o
 COBJS-$(CONFIG_BOOT_ANDROID) += boot_mode.o
