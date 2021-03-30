@@ -39,8 +39,7 @@ typedef enum
 }dm_sys_flag;
 
 
-#define LED_BLUE    GPIO_PC(26)  /* for 5025F, blue */
-#define LED_GREEN    GPIO_PC(25)  /* for 5025F, blue */
+#define LED_GREEN	GPIO_PC(26)
 
 struct cgu_clk_src cgu_clk_src[] = {
 	{OTG, EXCLK},
@@ -535,13 +534,8 @@ int fix_mbr(struct mmc *mmc)
 
 int led_init(unsigned char wifimode)
 {
-	int sys_led = LED_BLUE;
-	int off_led = LED_GREEN;
+	int sys_led = LED_GREEN;
 
-	gpio_request(off_led , "off-led");
-	gpio_direction_output(off_led , 0);
-	gpio_set_value(off_led, 1);
-	
 	gpio_request(sys_led , "led-sys");
 	gpio_direction_output(sys_led , 0);
 	gpio_set_value(sys_led, 0);
@@ -557,13 +551,8 @@ int led_init(unsigned char wifimode)
 
 int led_init_backup_system(unsigned char wifimode)
 {
-	int sys_led = LED_BLUE;
-	int off_led = LED_GREEN;
+	int sys_led = LED_GREEN;
 
-	gpio_request(off_led , "off-led");
-	gpio_direction_output(off_led , 0);
-	gpio_set_value(off_led, 1);
-	
 	gpio_request(sys_led , "led-sys");
 	gpio_direction_output(sys_led , 0);
 	gpio_set_value(sys_led, 0);
