@@ -21,25 +21,14 @@
  */
 
 #include <common.h>
-#include <nand.h>
-#include <net.h>
-#include <netdev.h>
 #include <asm/gpio.h>
 #include <asm/arch/cpm.h>
 #include <asm/arch/clk.h>
 #include <asm/arch/mmc.h>
 #include <mmc.h>
-#include <u-boot/md5_dm.h>
-
-unsigned char enter_sys_flag = 0;
-typedef enum
-{
-	FIRST_SYS_FLAG = 0,
-	SECOND_SYS_FLAG = 1,
-}dm_sys_flag;
 
 
-#define LED_GREEN	GPIO_PC(26)
+#define LED_GREEN GPIO_PC(26)
 
 struct cgu_clk_src cgu_clk_src[] = {
 	{OTG, EXCLK},
@@ -51,52 +40,9 @@ struct cgu_clk_src cgu_clk_src[] = {
 	{I2S, EXCLK},
 	{SRC_EOF,SRC_EOF}
 };
-extern int jz_net_initialize(bd_t *bis);
-#ifdef CONFIG_BOOT_ANDROID
-extern void boot_mode_select(void);
-#endif
-
-#if defined(CONFIG_CMD_BATTERYDET) && defined(CONFIG_BATTERY_INIT_GPIO)
-static void battery_init_gpio(void)
-{
-}
-#endif
 
 int board_early_init_f(void)
 {
-	return 0;
-}
-
-struct private_data
-{
-	unsigned char wifimode;
-	unsigned char mpsta;
-	unsigned char boot_flag;
-	unsigned char sys_flag;
-};
-
-int read_from_memory(struct private_data *p_data)
-{
-	ulong	addr;
-	ulong bytes = 512;
-	addr = 0x81000000;
-	unsigned char *buf = map_sysmem(addr, bytes);
-	p_data->wifimode = *buf;
-	p_data->mpsta = *(buf+1);
-	p_data->boot_flag = *(buf+2);
-	p_data->sys_flag = *(buf+3);
-	printf("wifi mode : %s\n", (p_data->wifimode == 5) ? "5G" : "2.4G");
-	printf("user disk mpsta : %s\n", (p_data->mpsta == 0xaa) ? "yes" : "no");
-	if(p_data->sys_flag == 0){
-		printf("sys_flag = %02x\n", p_data->sys_flag);
-	}
-	else{
-		printf("sys_flag = %02x\n", p_data->sys_flag);
-	}
-#ifdef BACKUP_SYSTEM
-	printf("boot flag : %d\n", p_data->boot_flag);
-#endif
-	unmap_sysmem(buf);
 	return 0;
 }
 
@@ -127,12 +73,9 @@ int write_uchar_to_memory(int offset,unsigned char dat)
 
 	*buf = dat;
 
-	
 	unmap_sysmem(buf);
 	return 0;
 }
-
-
 
 #if defined(CONFIG_SPL_JZMMC_SUPPORT)
 enum mmc_state {
@@ -141,7 +84,6 @@ enum mmc_state {
 	MMC_WRITE,
 	MMC_ERASE,
 };
-#define WIFI_MODE_ADDR 0x40000
 
 struct mmc *sd_mmc_init()
 {
@@ -157,16 +99,14 @@ struct mmc *sd_mmc_init()
 	struct mmc *mmc = find_mmc_device(curr_device);
 	mmc_init(mmc);
 	return mmc ;
-
 }
-
 
 int get_data_from_mmc(struct mmc *mmc,u32 blk,u32 cnt)
 {
 	int curr_device = 0;
-	
+
 	enum mmc_state state;
-	
+
 	state = MMC_READ;
 	if (state != MMC_INVALID) {
 		
@@ -270,8 +210,6 @@ int write_data_to_mmc(struct mmc *mmc,u32 blk,u32 cnt)
 	return 0;
 }
 
-
-
 static void print_mmcinfo(struct mmc *mmc)
 {
 	printf("Device: %s\n", mmc->name);
@@ -300,8 +238,6 @@ int get_disk_size(struct mmc *mmc,unsigned long *sector)
 	int curr_device = 0;
 	unsigned long all_sector = 0;
 
-	
-
 	if (mmc) {
 		
 		puts("MMC info :\n");
@@ -316,26 +252,6 @@ int get_disk_size(struct mmc *mmc,unsigned long *sector)
 		printf("no mmc device at slot %x\n", curr_device);
 		return 1;
 	}
-}
-
-
-int mp_disk(struct mmc *mmc)
-{
-	unsigned long p4_sector;
-	unsigned long p4_offset;
-	p4_offset = CONFIG_MBR_P3_OFF_INT*1024*2;
-	get_disk_size(mmc,&p4_sector);
-	p4_sector = p4_sector - p4_offset ;
-	printf("p4 sectors : %lu %08x\n\n",p4_sector,p4_sector);
-	get_data_from_mmc(mmc,0,1);
-	write_ulong_to_memory(0x1fa,p4_sector);
-	write_data_to_mmc(mmc,0,1);
-
-	get_data_from_mmc(mmc,512,1);
-	write_uchar_to_memory(1,0xaa);
-	write_data_to_mmc(mmc,512,1);
-
-	return 0;
 }
 
 #ifdef FIX_MBR
@@ -434,7 +350,7 @@ int read_mbr_from_memory(struct mbr_tab_item *p_tab_item_mbr, struct mbr_head *p
 			printf("%02x %02x\n", (*p_tail_mbr).tail1, (*p_tail_mbr).tail2);
 	#endif
 	}
-	
+
 	unmap_sysmem(buf);
 	return 0;
 }
@@ -525,164 +441,36 @@ int fix_mbr(struct mmc *mmc)
 	write_ulong_to_memory(P4_OFFSET, dbr_offset);
 	write_ulong_to_memory(P4_SIZE, tab_item_mbr2[0].size);
 	write_data_to_mmc(mmc,0,1);
-	
+
 	return 0;
 }
 
 #endif
 #endif
 
-int led_init(unsigned char wifimode)
+int led_init(void)
 {
-	int sys_led = LED_GREEN;
-
-	gpio_request(sys_led , "led-sys");
-	gpio_direction_output(sys_led , 0);
-	gpio_set_value(sys_led, 0);
+	gpio_request(LED_GREEN, "led-status");
+	gpio_direction_output(LED_GREEN, 0);
+	gpio_set_value(LED_GREEN, 0);
 	udelay(200000);
-	gpio_set_value(sys_led, 1);
+	gpio_set_value(LED_GREEN, 1);
 	udelay(200000);
-	gpio_set_value(sys_led, 0);
+	gpio_set_value(LED_GREEN, 0);
 	udelay(200000);
-	gpio_set_value(sys_led, 1);
+	gpio_set_value(LED_GREEN, 1);
 	udelay(200000);
-	gpio_set_value(sys_led, 0);
-}
+	gpio_set_value(LED_GREEN, 0);
 
-int led_init_backup_system(unsigned char wifimode)
-{
-	int sys_led = LED_GREEN;
-
-	gpio_request(sys_led , "led-sys");
-	gpio_direction_output(sys_led , 0);
-	gpio_set_value(sys_led, 0);
-	udelay(1000000);
-	gpio_set_value(sys_led, 1);
-	udelay(200000);
-	gpio_set_value(sys_led, 0);
-	udelay(1000000);
-	gpio_set_value(sys_led, 1);
-	udelay(200000);
-	gpio_set_value(sys_led, 0);
-}
-
-static int hex16totxt(char *in_data,char *out_data)
-{
-	int tmpi,tmpcn=0;
-	char hex_buf[3];
-	char hex_hi,hex_lo,hex;
-	for(tmpi=0;tmpi<16;tmpi++)
-	{
-		hex=in_data[tmpi];
-		memset(hex_buf, 0, sizeof(hex_buf));
-		sprintf(hex_buf, "%02x", (unsigned char)hex);
-		strcat(out_data, hex_buf);
-		#if 0
-		hex=in_data[tmpi];
-		hex_hi=(hex>>4)&0xF;
-		hex_lo=hex&0xF;
-		if(hex_lo<10)
-			out_data[tmpcn++]=hex_lo+'0';
-		else
-			out_data[tmpcn++]=hex_lo+'a';
-		if(hex_hi<10)
-			out_data[tmpcn++]=hex_hi+'0';
-		else
-			out_data[tmpcn++]=hex_hi+'a';
-		#endif
-	}
-}
-
-int get_md5(char *data, int size, char *md5_out_buf)
-{
-	char md5_buf[17];
-	memset(md5_buf,0,17);
-
-	md5_dm(data, size, md5_buf);
-	hex16totxt(md5_buf,md5_out_buf);
 	return 0;
 }
-
-#ifdef CONFIG_USB_GADGET
-int jz_udc_probe(void);
-void board_usb_init(void)
-{
-	printf("USB_udc_probe\n");
-	jz_udc_probe();
-}
-#endif /* CONFIG_USB_GADGET */
 
 int misc_init_r(void)
 {
-	struct private_data p_data;
-	memset(&p_data, 0, sizeof(struct private_data));
-#if defined(CONFIG_SPL_JZMMC_SUPPORT)
-	struct mmc *mmc=sd_mmc_init();
-	get_data_from_mmc(mmc,512,1);
-	read_from_memory(&p_data);
-	led_init(p_data.wifimode);
-	if(p_data.mpsta != 0xaa)
-		mp_disk(mmc);
-#endif
-
-#ifdef BACKUP_SYSTEM
-	#if defined(CONFIG_SPL_JZMMC_SUPPORT)
-	if(p_data.boot_flag >= 3 && p_data.boot_flag != 0xff)
-	{
-		//enter_backup_sys = 1;
-		if(p_data.boot_flag == 3){
-			get_data_from_mmc(mmc,512,1);
-			write_uchar_to_memory(2,p_data.boot_flag + 1);
-			write_data_to_mmc(mmc,512,1);
-		}
-		if(p_data.sys_flag == 0){
-			enter_sys_flag = SECOND_SYS_FLAG;
-		}
-		else{
-			enter_sys_flag = FIRST_SYS_FLAG;
-		}
-		printf("backup system mode.\n");
-		if(enter_sys_flag == FIRST_SYS_FLAG)
-			printf("we will enter to the first system\n");
-		else
-			printf("we will enter to the second system\n");
-	}
-	else
-	{
-		//enter_backup_sys = 0;
-		if(p_data.boot_flag == 0xff)
-		{
-			get_data_from_mmc(mmc,512,1);
-			write_uchar_to_memory(2,0);
-			write_data_to_mmc(mmc,512,1);
-		}
-		else
-		{
-			get_data_from_mmc(mmc,512,1);
-			write_uchar_to_memory(2,p_data.boot_flag + 1);
-			write_data_to_mmc(mmc,512,1);
-		}
-
-		if(p_data.sys_flag == 0){
-			enter_sys_flag = FIRST_SYS_FLAG;
-		}
-		else{
-			enter_sys_flag = SECOND_SYS_FLAG;
-		}
-
-		printf("normal system mode.\n");
-		if(enter_sys_flag == FIRST_SYS_FLAG)
-			printf("we will enter to the first system\n");
-		else
-			printf("we will enter to the second system\n");
-		
-	}
-	#endif
-#endif
-
 #ifdef FIX_MBR
 	int ret = 0;
 	ret = fix_mbr(mmc);
+
 	if(ret == 1)
 	{
 		printf("no need fix mbr!\n");
@@ -694,20 +482,9 @@ int misc_init_r(void)
 		printf("fix mbr fail!\n");
 	}
 #endif
-	
-#if 0 /* TO DO */
-	uint8_t mac[6] = { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc };
 
-	/* set MAC address */
-	eth_setenv_enetaddr("ethaddr", mac);
-#endif
-#ifdef CONFIG_BOOT_ANDROID
-	boot_mode_select();
-#endif
+	led_init();
 
-#if defined(CONFIG_CMD_BATTERYDET) && defined(CONFIG_BATTERY_INIT_GPIO)
-	battery_init_gpio();
-#endif
 	return 0;
 }
 
@@ -719,20 +496,6 @@ int board_mmc_init(bd_t *bd)
 }
 #endif
 
-int board_eth_init(bd_t *bis)
-{
-	int rv;
-#ifndef  CONFIG_USB_ETHER
-	/* reset grus DM9000 */
-#ifdef CONFIG_NET_GMAC
-	rv = jz_net_initialize(bis);
-#endif
-#else
-	rv = usb_eth_initialize(bis);
-#endif
-	return rv;
-}
-
 #ifdef CONFIG_SPL_NOR_SUPPORT
 int spl_start_uboot(void)
 {
@@ -743,16 +506,13 @@ int spl_start_uboot(void)
 /* U-Boot common routines */
 int checkboard(void)
 {
-
 	puts("Board: ZoomGo ZX10 (Damai DM6291A SoC)\n");
 	printf("DDR Freq: %d\n",CONFIG_SYS_MEM_FREQ);
 	return 0;
 }
 
 #ifdef CONFIG_SPL_BUILD
-
 void spl_board_init(void)
 {
 }
-
 #endif /* CONFIG_SPL_BUILD */

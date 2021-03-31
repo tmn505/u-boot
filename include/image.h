@@ -95,11 +95,6 @@ struct lmb;
 #define IMAGE_ENABLE_SHA1	0
 #endif
 
-#else
-# ifndef CONFIG_SPL_BUILD
-#	define CONFIG_MD5		/* and MD5 */
-#endif
-
 #endif /* CONFIG_FIT */
 
 #ifdef CONFIG_SYS_BOOT_RAMDISK_HIGH
