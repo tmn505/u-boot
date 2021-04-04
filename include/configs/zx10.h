@@ -190,8 +190,8 @@
 #define CONFIG_ENV_SIZE			(32 << 10)
 #define CONFIG_ENV_OFFSET		(CONFIG_SYS_MONITOR_LEN + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
 #elif defined(CONFIG_ENV_IS_IN_SFC)
-#define CONFIG_ENV_SIZE			(4 << 10)
-#define CONFIG_ENV_OFFSET		0x2e400 /*write nor flash 185k address*/
+#define CONFIG_ENV_SIZE			(64 << 10)
+#define CONFIG_ENV_OFFSET		0xff0000
 #define CONFIG_CMD_SAVEENV
 #else
 #define CONFIG_ENV_IS_NOWHERE
