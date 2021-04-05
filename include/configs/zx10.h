@@ -104,8 +104,8 @@
 #define CONFIG_CMD_BOOTD	/* bootd			*/
 #define CONFIG_CMD_CONSOLE	/* coninfo			*/
 #define CONFIG_CMD_ECHO		/* echo arguments		*/
-#define CONFIG_CMD_EXT4 	/* ext4 support			*/
-#define CONFIG_CMD_FAT		/* FAT support			*/
+#define CONFIG_CMD_FS_GENERIC
+#define CONFIG_CMD_PART
 #define CONFIG_CMD_MEMORY	/* md mm nm mw cp cmp crc base loop mtest */
 #define CONFIG_CMD_MISC		/* Misc functions like sleep etc*/
 #define CONFIG_CMD_RUN		/* run command in env variable	*/
@@ -140,6 +140,10 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION
+#define CONFIG_PARTITION_UUIDS
+#define CONFIG_FS_EXT4
+#define CONFIG_FS_FAT
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
