@@ -78,7 +78,7 @@
 #if defined(CONFIG_SPL_SFC_SUPPORT)
 	#if defined(CONFIG_SPL_SFC_NOR)
 		#define CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock4 rw init=/sbin/init"
-		#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x200000 0x80800000 ;bootm 0x80800000"
+		#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x800000 " __stringify(CONFIG_SYS_LOAD_ADDR) "; bootm " __stringify(CONFIG_SYS_LOAD_ADDR)
 	#endif
 #elif defined(CONFIG_SPL_JZMMC_SUPPORT)
 	#define CONFIG_BOOTARGS BOOTARGS_COMMON " root=/dev/mmcblk0p1 rootfstype=ext4 rootwait init=/sbin/init"
@@ -172,6 +172,7 @@
 
 #define CONFIG_SYS_MALLOC_LEN		(8 * 1024 * 1024)
 #define CONFIG_SYS_BOOTPARAMS_LEN	(128 * 1024)
+#define CONFIG_SYS_BOOTM_LEN		(32 * 1024 * 1024)
 
 #define CONFIG_SYS_SDRAM_BASE		0x80000000 /* cached (KSEG0) address */
 #define CONFIG_SYS_SDRAM_MAX_TOP	0x90000000 /* don't run into IO space */
