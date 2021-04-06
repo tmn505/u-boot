@@ -69,10 +69,6 @@
 #define CONFIG_SPL_SFC_SUPPORT
 #endif
 
-#if defined(CONFIG_SPL_JZMMC_SUPPORT)
-#define FIX_MBR
-#endif
-
 #define CONFIG_LZMA
 /**
  * Boot arguments definitions.
