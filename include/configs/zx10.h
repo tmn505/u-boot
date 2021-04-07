@@ -73,16 +73,30 @@
 /**
  * Boot arguments definitions.
  */
-#define BOOTARGS_COMMON "console=ttyS2,115200n8 consoleblank=0 mem=256M@0x0 "
+#define BOOTARGS_COMMON "mem=256M@0x0 "
 
 #if defined(CONFIG_SPL_SFC_SUPPORT)
 	#if defined(CONFIG_SPL_SFC_NOR)
-		#define CONFIG_BOOTARGS BOOTARGS_COMMON "ip=off rootfstype=squashfs,jffs2 root=/dev/mtdblock4 rw init=/sbin/init"
-		#define CONFIG_BOOTCOMMAND "sfcnor read 0x40000 0x800000 " __stringify(CONFIG_SYS_LOAD_ADDR) "; bootm " __stringify(CONFIG_SYS_LOAD_ADDR)
+		#define CONFIG_BOOTARGS BOOTARGS_COMMON
+		#define CONFIG_EXTRA_ENV_SETTINGS \
+			"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
+			"boot_prefixes=/ /boot/\0" \
+			"boot_targets=msc sfcnor\0" \
+			"bootcmd_msc=" \
+				"setenv devtype mmc; " \
+				"setenv devnum 0; " \
+				"setenv rootpart 1; " \
+				"for prefix in ${boot_prefixes}; " \
+					"do if load ${devtype} ${devnum}:${rootpart} ${kernel_addr_r} ${prefix}boot.scr; then " \
+						"source ${kernel_addr_r}; " \
+					"fi; " \
+				"done;\0" \
+			"bootcmd_sfcnor=sfcnor read 0x40000 0x800000 ${kernel_addr_r}; bootm ${kernel_addr_r};\0"
+		#define CONFIG_BOOTCOMMAND "for target in ${boot_targets}; do run bootcmd_${target}; done"
 	#endif
 #elif defined(CONFIG_SPL_JZMMC_SUPPORT)
-	#define CONFIG_BOOTARGS BOOTARGS_COMMON " root=/dev/mmcblk0p1 rootfstype=ext4 rootwait init=/sbin/init"
-	#define CONFIG_BOOTCOMMAND "mmc dev 0;mmc read 0x80600000 0x1800 0x3000; bootm 0x80600000"
+	#define CONFIG_BOOTARGS BOOTARGS_COMMON "root=/dev/mmcblk0p1 rootfstype=ext4 rootwait rw"
+	#define CONFIG_BOOTCOMMAND "mmc dev 0; mmc read 0x80600000 0x1800 0x3000; bootm 0x80600000"
 #endif
 
 /**
@@ -146,12 +160,14 @@
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SYS_FLASH_BASE	0 /* init flash_base as 0 */
 #define CONFIG_ENV_OVERWRITE
+#define CONFIG_ENV_VARS_UBOOT_CONFIG
 #define CONFIG_MISC_INIT_R 1
 
 #define CONFIG_BOOTP_MASK	(CONFIG_BOOTP_DEFAUL)
 
 #define CONFIG_SYS_MAXARGS 16
 #define CONFIG_SYS_LONGHELP
+#define CONFIG_SYS_HUSH_PARSER
 
 #if defined(CONFIG_SPL_JZMMC_SUPPORT)
 	#define CONFIG_SYS_PROMPT CONFIG_SYS_BOARD "-msc0# "
