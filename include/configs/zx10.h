@@ -70,40 +70,29 @@
 #endif
 
 #define CONFIG_LZMA
+
 /**
- * Boot arguments definitions.
+ * Boot arguments & command definitions.
  */
 #define BOOTARGS_COMMON "mem=256M@0x0 "
 
-#if defined(CONFIG_SPL_SFC_SUPPORT)
-	#if defined(CONFIG_SPL_SFC_NOR)
-		#define CONFIG_BOOTARGS BOOTARGS_COMMON
-		#define CONFIG_EXTRA_ENV_SETTINGS \
-			"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
-			"boot_prefixes=/ /boot/\0" \
-			"boot_targets=msc sfcnor\0" \
-			"bootcmd_msc=" \
-				"setenv devtype mmc; " \
-				"setenv devnum 0; " \
-				"setenv rootpart 1; " \
-				"for prefix in ${boot_prefixes}; " \
-					"do if load ${devtype} ${devnum}:${rootpart} ${kernel_addr_r} ${prefix}boot.scr; then " \
-						"source ${kernel_addr_r}; " \
-					"fi; " \
-				"done;\0" \
-			"bootcmd_sfcnor=sfcnor read 0x40000 0x800000 ${kernel_addr_r}; bootm ${kernel_addr_r};\0"
-		#define CONFIG_BOOTCOMMAND "for target in ${boot_targets}; do run bootcmd_${target}; done"
-	#endif
-#elif defined(CONFIG_SPL_JZMMC_SUPPORT)
-	#define CONFIG_BOOTARGS BOOTARGS_COMMON "root=/dev/mmcblk0p1 rootfstype=ext4 rootwait rw"
-	#define CONFIG_BOOTCOMMAND "mmc dev 0; mmc read 0x80600000 0x1800 0x3000; bootm 0x80600000"
-#endif
-
-/**
- * Boot command definitions.
- */
+#define CONFIG_BOOTARGS BOOTARGS_COMMON
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
+	"boot_prefixes=/ /boot/\0" \
+	"boot_targets=msc sfcnor\0" \
+	"bootcmd_msc=" \
+		"setenv devtype mmc; " \
+		"setenv devnum 0; " \
+		"setenv rootpart 1; " \
+		"for prefix in ${boot_prefixes}; " \
+			"do if load ${devtype} ${devnum}:${rootpart} ${kernel_addr_r} ${prefix}boot.scr; then " \
+				"source ${kernel_addr_r}; " \
+			"fi; " \
+		"done;\0" \
+	"bootcmd_sfcnor=sfcnor read 0x40000 0x800000 ${kernel_addr_r}; bootm ${kernel_addr_r};\0"
+#define CONFIG_BOOTCOMMAND "for target in ${boot_targets}; do run bootcmd_${target}; done"
 #define CONFIG_BOOTDELAY 1
-
 
 /* GPIO */
 #define CONFIG_JZ_GPIO
@@ -131,15 +120,11 @@
 
 /* MMC */
 #define CONFIG_CMD_MMC
-
-#ifdef CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC		1
 #define CONFIG_MMC			1
 #define CONFIG_JZ_MMC			1
-
 #define CONFIG_JZ_MMC_MSC0_PA_4BIT 1
 #define CONFIG_MSC_DATA_WIDTH_4BIT
-#endif
 
 /**
  * Serial download configuration
@@ -168,23 +153,12 @@
 #define CONFIG_SYS_MAXARGS 16
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_HUSH_PARSER
-
-#if defined(CONFIG_SPL_JZMMC_SUPPORT)
-	#define CONFIG_SYS_PROMPT CONFIG_SYS_BOARD "-msc0# "
-#elif defined(CONFIG_SPL_SFC_SUPPORT)
-	#if defined(CONFIG_SPL_SFC_NOR)
-		#define CONFIG_SYS_PROMPT CONFIG_SYS_BOARD "-sfcnor# "
-	#endif
-#endif
+#define CONFIG_SYS_PROMPT CONFIG_SYS_BOARD "# "
 
 #define CONFIG_SYS_CBSIZE 1024 /* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 
-#if defined(CONFIG_SUPPORT_EMMC_BOOT)
-#define CONFIG_SYS_MONITOR_LEN		(384 * 1024)
-#else
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)
-#endif
 
 #define CONFIG_SYS_MALLOC_LEN		(8 * 1024 * 1024)
 #define CONFIG_SYS_BOOTPARAMS_LEN	(128 * 1024)
@@ -202,11 +176,7 @@
 /**
  * Environment
  */
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV		0
-#define CONFIG_ENV_SIZE			(32 << 10)
-#define CONFIG_ENV_OFFSET		(CONFIG_SYS_MONITOR_LEN + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
-#elif defined(CONFIG_ENV_IS_IN_SFC)
+#if defined(CONFIG_ENV_IS_IN_SFC)
 #define CONFIG_ENV_SIZE			(64 << 10)
 #define CONFIG_ENV_OFFSET		0xff0000
 #define CONFIG_CMD_SAVEENV
@@ -229,101 +199,25 @@
 #endif
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x3A /* 12KB+17K offset */
 #define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x200 /* 256 KB */
-#ifndef CONFIG_SMALLER_SPL
 #define CONFIG_SPL_SERIAL_SUPPORT
-#endif
 #define CONFIG_SPL_GPIO_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
-#if defined(CONFIG_SPL_JZMMC_SUPPORT)
-#define CONFIG_SPL_PAD_TO		12288  /* spl size */
-#define CONFIG_SPL_TEXT_BASE		0xf4001000
-#define CONFIG_SPL_MAX_SIZE		(12 * 1024)
-#elif defined(CONFIG_SPL_SFC_SUPPORT)
 #define CONFIG_UBOOT_OFFSET             (4<<12)
 #define CONFIG_JZ_SFC_PA_6BIT
 #define CONFIG_SPI_SPL_CHECK
 #define CONFIG_SPL_TEXT_BASE		0xf4001000
 #define CONFIG_SPL_MAX_SIZE		((16 * 1024) - 0x800)
 #define CONFIG_SPL_PAD_TO		16384
-#define CONFIG_CMD_SFC_NOR
-#endif
 
-#ifdef CONFIG_CMD_SFC_NOR
+#define CONFIG_CMD_SFC_NOR
 #define CONFIG_JZ_SFC
 #define CONFIG_JZ_SFC_NOR
 #define CONFIG_SPI_QUAD
-#endif
-
-#ifdef CONFIG_JZ_SFC_NOR
 #define CONFIG_SPIFLASH_PART_OFFSET     0x3c00
 #define CONFIG_SPI_NORFLASH_PART_OFFSET     0x3c74
 #define CONFIG_NOR_MAJOR_VERSION_NUMBER     1
 #define CONFIG_NOR_MINOR_VERSION_NUMBER     0
 #define CONFIG_NOR_REVERSION_NUMBER     0
 #define CONFIG_NOR_VERSION     (CONFIG_NOR_MAJOR_VERSION_NUMBER | (CONFIG_NOR_MINOR_VERSION_NUMBER << 8) | (CONFIG_NOR_REVERSION_NUMBER <<16))
-#endif
-
-
-/**
- * MBR configuration
- */
-
-#define SD_SIZE_4G
-
-#ifdef CONFIG_MBR_CREATOR
-#if 0
-#define CONFIG_MBR_P0_OFF	64mb
-#define CONFIG_MBR_P0_END	556mb
-#define CONFIG_MBR_P0_TYPE 	linux
-
-#define CONFIG_MBR_P1_OFF	580mb
-#define CONFIG_MBR_P1_END 	1604mb
-#define CONFIG_MBR_P1_TYPE 	linux
-
-#define CONFIG_MBR_P2_OFF	28mb
-#define CONFIG_MBR_P2_END	58mb
-#define CONFIG_MBR_P2_TYPE 	linux
-
-#define CONFIG_MBR_P3_OFF	1609mb
-#define CONFIG_MBR_P3_END	7800mb
-#define CONFIG_MBR_P3_TYPE 	fat
-#endif
-
-
-#define CONFIG_MBR_P0_OFF	8mb
-#define CONFIG_MBR_P0_END	60mb    /* 48 */
-#define CONFIG_MBR_P0_TYPE 	linux
-
-#define CONFIG_MBR_P1_OFF	61mb
-#define CONFIG_MBR_P1_END 	62mb
-#define CONFIG_MBR_P1_TYPE 	linux
-
-#define CONFIG_MBR_P2_OFF	63mb
-#define CONFIG_MBR_P2_END	64mb
-#define CONFIG_MBR_P2_TYPE 	linux
-
-#define CONFIG_MBR_P3_OFF	70mb
-#define CONFIG_MBR_P3_OFF_INT 70
-
-#if defined(SD_SIZE_4G)
-#define CONFIG_MBR_P3_END	3688mb /*3488mb*/
-#elif defined(SD_SIZE_8G)
-#define CONFIG_MBR_P3_END	7800mb
-#elif defined(SD_SIZE_16G)
-#define CONFIG_MBR_P3_END	14900mb
-#elif defined(SD_SIZE_32G)
-#define CONFIG_MBR_P3_END	30420mb
-#elif defined(SD_SIZE_64G)
-#define CONFIG_MBR_P3_END	61100mb
-#elif defined(SD_SIZE_128G)
-#define CONFIG_MBR_P3_END	122480mb
-#endif
-
-#define CONFIG_MBR_P3_TYPE 	fat
-
-
-#else
-#define CONFIG_GPT_TABLE_PATH	"$(TOPDIR)/board/$(BOARDDIR)"
-#endif
 
 #endif /* __CONFIG_ZX10_H__ */
