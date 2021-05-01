@@ -1,0 +1,44 @@
+name: Publish U-Boot binary
+on:
+  push:
+    paths:
+      - '.github/workflows/trigger'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Build & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Prepare
+        run: |
+          wget -nv -nc -O "toolchain.tar.gz" "https://github.com/XBurst/CU1000-Neo/archive/5dc1d872ead8fed8cf0896d79488a19de522a7a5.tar.gz"
+          tar -x -z --strip-components=1 -f toolchain.tar.gz
+          git clone --depth 1 --branch zx10 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" zx10
+
+      - name: Build artifacts
+        run: |
+          cd zx10
+          LATEST_TAG=$(git describe)
+          ARCH=mips CROSS_COMPILE="$GITHUB_WORKSPACE/toolchain/bin/mips-linux-gnu-" make zx10
+          cp u-boot-with-spl.bin "$GITHUB_WORKSPACE/u-boot-$LATEST_TAG.bin"
+          cd "$GITHUB_WORKSPACE"
+          rm -fR README.md toolchain toolchain.tar.gz zx10
+          sha256sum *.bin > sha256sums.txt
+          .github/workflows/genindex.sh
+          printf "LATEST_TAG=$LATEST_TAG" > env.txt
+
+      - name: Release built artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          source env.txt
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sha256sums.txt u-boot-"$LATEST_TAG".bin
+          git commit -m "Publish U-Boot $LATEST_TAG"
+          git push "https://$GITHUB_REPOSITORY_OWNER:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git" gh-pages
