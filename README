@@ -21,18 +21,18 @@
 # MA 02111-1307 USA
 #
 
-1)
-export PATH=$PATH:tool_chain_path
-export CROSS_COMPILE=mips-linux-gnu-
-2)
-sd/emmc boot:
-make canna_v10_uImage_msc0
-nor flash boot:
-make canna_v10_uImage_sfc_nor
+U-Boot for ZoomGo Media Stick (ZX10)
 
+Toolchain
+Use GCC 5 or older. The compilation is tested only with Igenic
+toolchain available at:
+https://github.com/XBurst/CU1000-Neo.git, branch "toolchain".
 
-burning uboot to sd card:
-dd if=xxx/u-boot-with-spl-mbr.bin of=/dev/sdx bs=1K count=512;
+Compilation
+ARCH=mips CROSS_COMPILE="/toolchain/path/with-its-triplet-" make zx10
+
+The resulting binary needed for writing to flash, is named
+"u-boot-with-spl.bin".
 
 Summary:
 ========
